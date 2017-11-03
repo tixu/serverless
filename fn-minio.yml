@@ -1,0 +1,16 @@
+version: '3.1'
+
+services:
+  minio1:
+    image: minio/minio:RELEASE.2017-10-27T18-59-02Z
+    volumes:
+       - ./minio-data:/data
+       - ./minio-config:/root/.minio
+    ports:
+      - "9001:9000"
+    environment:
+      MINIO_ACCESS_KEY: ACCESS_KEY
+      MINIO_SECRET_KEY: SECRET_KEY
+    command: server /data
+volumes:
+    minio-data:

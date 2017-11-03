@@ -12,20 +12,22 @@ services:
               - MQ_URL=redis://redis:6379
               - ZIPKIN_URL=http://zipkin:9411/api/v1/spans
       ports:
-           - 80:8080
+           - 8080:8080
       volumes:
          - /var/run/docker.sock:/var/run/docker.sock
       depends_on:
            - db
            - redis
-           - zipkin
+           
     fn-ui:
       image: fnproject/ui
       restart: always
       ports:
-         - 4000:4000
+           - 5000:4000
       environment:
             - API_URL=http://fn:8080
+      links:
+            - fn
     db:
       image: postgres:10
       restart: always
@@ -37,7 +39,7 @@ services:
         image: adminer
         restart: always
         ports:
-           - 8080:8080
+           - 18080:8080
         depends_on:
            - db
       
@@ -45,6 +47,9 @@ services:
       image: openzipkin/zipkin
       ports:
            - 9411:9411
+      depends_on:
+          - fn
+ 
     redis:
         image: redis
         restart: always
@@ -54,6 +59,8 @@ services:
           - 9090:9090
         volumes:
           - ./prometheus.yml:/etc/prometheus/prometheus.yml
+        depends_on:
+           - fn
     grafana:
         image: grafana/grafana
         links:
@@ -61,10 +68,19 @@ services:
         ports:
            - 3000:3000
         environment:
-           - GF_SERVER_ROOT_URL=http://blockchain1.cloud.smals.be
+           - GF_SERVER_ROOT_URL=http://localhost
            - GF_SECURITY_ADMIN_PASSWORD=secret
 
            - 8080:8080
         depends_on:
-           - db
-    
+           - prometheus
+   
+    portainer:
+        image: portainer/portainer:1.15.0
+        privileged: true
+        ports:
+           - 9000:9000
+        volumes:
+            - ./portainer-data:/data
+            - /var/run/docker.sock:/var/run/docker.sock
+
